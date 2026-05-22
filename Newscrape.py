@@ -151,6 +151,9 @@ class CLIController:
 
     def article_select_loop(self, news_list: list):
         while True:
+            print("\n---Article List---")
+            for i, news in enumerate(news_list,1):
+                print(f"[{i}]{news["title"]}")
             raw_choice = input(f"\nSelect Article (1-{len(news_list)}) / [b: 戻る / q: 終了]: ")
             choice = unicodedata.normalize('NFKC', raw_choice).strip().lower()
     
@@ -179,13 +182,15 @@ class CLIController:
             print(f"URL: {target['link']}")
             
             while True:
-                raw_action = input("\n[b: 記事選択に戻る / q: 終了]: ")
+                raw_action = input("\n[b: 記事選択に戻る / s: 検索に戻る / q: 終了]: ")
                 action = unicodedata.normalize('NFKC', raw_action).strip().lower()
 
                 if action == 'q':
                     exit()
                 elif action == 'b':
                     break
+                elif action == "s":
+                    return
                 elif action =="":
                     continue
                 else:
