@@ -195,6 +195,11 @@ class CLIController:
                     continue
                 else:
                     print("[Error] Invalid selection.")
+
+    def _save_to_history(self,title: str,summary: str):
+        """記事のタイトルと要約をhistory.txtに保存する"""
+        pass
+
             
 
 if __name__ == "__main__":
