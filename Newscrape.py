@@ -84,6 +84,16 @@ class NewsFetcher:
         soup = BeautifulSoup(res.text, 'html.parser')
         article_tag = soup.find('article')
         return article_tag.get_text() if article_tag else soup.get_text()
+    
+class HistoryManager:
+    """履歴ファイルの保存･管理を担当するクラス"""
+
+    def __init__(self, filepath:str = "history.txt"):
+        self.filepath = filepath
+
+    def save_article(self,title:str,summary:str):
+        """記事のタイトルと要約をファイルに追記する"""
+        pass
 
 # --- CLI Controller Module ---
 class CLIController:
@@ -196,9 +206,7 @@ class CLIController:
                 else:
                     print("[Error] Invalid selection.")
 
-    def _save_to_history(self,title: str,summary: str):
-        """記事のタイトルと要約をhistory.txtに保存する"""
-        pass
+    
 
             
 
