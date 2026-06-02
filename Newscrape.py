@@ -82,12 +82,18 @@ class NewsFetcher:
             print(f"[Error] Failed to fetch RSS: {e}")
             return None
 
-    def scrape_article(self, url: str) -> str:
+    def scrape_article(self, url: str) -> str | None:
         headers = {"User-Agent": "Mozilla/5.0"}
-        res = requests.get(url, headers=headers)
+        try:
+            res = requests.get(url, headers=headers,timeout=10)
+            res.raise_for_status()
+            res.encoding = res.apparent_encoding
+        except requests.RequestException as e:
+            print(f"[Error] Failed to fetch article:{e}")
+            return None
         soup = BeautifulSoup(res.text, "html.parser")
         article_tag = soup.find("article")
-        return article_tag.get_text() if article_tag else soup.get_text()
+        return article_tag.get_text(separator="\n",strip=True) if article_tag else soup.get_text()
 
 
 class HistoryManager:
@@ -200,6 +206,9 @@ class CLIController:
             print(f"\n>> Analyzing: {target['title']} ...")
 
             raw_text = self.fetcher.scrape_article(target["link"])
+            if raw_text is None:
+                print("記事取得に失敗しました。")
+                continue
             report = self.analyzer.analyze(raw_text)
 
             md_text = Markdown(report)
@@ -214,7 +223,7 @@ class CLIController:
             while True:
 
                 save_action = input(
-                    "\nこの記事を保存しますか？\n[h: 保存 / Enter: 保存せず次に進む]"
+                    "\nこの記事を保存しますか？\n[h: 保存 / Enter: 保存せず次に進む / q: 終了]"
                 )
                 action = unicodedata.normalize("NFKC", save_action).strip().lower()
 
@@ -226,8 +235,10 @@ class CLIController:
                 elif action == "":
                     print("\n>>保存をスキップしました")
                     break
+                elif action == "q":
+                    exit()
                 else:
-                    print("[Error] 無効な入力です。『h』か『Enter』を押してください。")
+                    print("[Error] 無効な入力です。")
 
             while True:
                 raw_action = input("\n[b: 記事選択に戻る / s: 検索に戻る / q: 終了]: ")
