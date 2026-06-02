@@ -1,1 +1,5 @@
 history.txt
+test_history.txt
+
+_pycache__/
+*.pyc
