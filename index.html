@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AIニュース要約アプリ</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        body { font-family: sans-serif; background-color: #f4f7f6; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        h1 { color: #333; }
+        button { background-color: #007bff; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+        .news-item { background: #f9f9f9; padding: 15px; margin-bottom: 10px; border-left: 5px solid #007bff; }
+        #report-area { margin-top: 20px; padding: 20px; background: #eef; border-radius: 5px; display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>AIニュース要約（FastAPI x Gemini）</h1>
+    
+    <label>カテゴリ: </label>
+    <select id="category">
+        <option value="1">総合</option>
+        <option value="2">経済</option>
+        <option value="3">IT</option>
+    </select>
+    <button onclick="fetchNews()">ニュースを取得</button>
+
+    <div id="news-list" style="margin-top: 20px;"></div>
+
+    <div id="report-area">
+        <h2 id="report-title"></h2>
+        <div id="report-content"></div> 
+    </div>
+</div>
+
+<script>
+    const API_BASE = "http://127.0.0.1:8000";
+
+    // ニュース一覧を取得する関数
+    async function fetchNews() {
+        const categoryId = document.getElementById("category").value;
+        const listDiv = document.getElementById("news-list");
+        listDiv.innerHTML = "読込中...";
+        
+        try {
+            const response = await fetch(`${API_BASE}/news/${categoryId}`);
+            const data = await response.json();
+            
+            listDiv.innerHTML = "";
+            data.articles.forEach(article => {
+                const div = document.createElement("div");
+                div.className = "news-item";
+                div.innerHTML = `
+                    <strong>${article.title}</strong><br>
+                    <button onclick="analyzeArticle('${article.title}', '${article.link}')" style="margin-top: 10px; font-size: 0.9em; background-color: #28a745;">🤖 AIで要約</button>
+                `;
+                listDiv.appendChild(div);
+            });
+        } catch (error) {
+            listDiv.innerHTML = "エラーが発生しました。サーバーが起動しているか確認してください。";
+        }
+    }
+
+    // AI要約を実行する関数
+    async function analyzeArticle(title, link) {
+        const reportArea = document.getElementById("report-area");
+        const reportTitle = document.getElementById("report-title");
+        const reportContent = document.getElementById("report-content");
+
+        reportArea.style.display = "block";
+        reportTitle.innerText = "要約中...（数秒かかります）";
+        reportContent.innerHTML = "";
+
+        try {
+            const response = await fetch(`${API_BASE}/analyze`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ title: title, link: link }) // 先ほど修正した仕様に合わせて link で送信
+            });
+            const data = await response.json();
+
+            reportTitle.innerText = data.title;
+            // marked.parse() で「**」や「\n」を本物の太字や改行に変換！
+            reportContent.innerHTML = marked.parse(data.report); 
+            
+        } catch (error) {
+            reportTitle.innerText = "エラーが発生しました。";
+        }
+    }
+</script>
+
+</body>
+</html>
