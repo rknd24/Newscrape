@@ -166,7 +166,6 @@ class CLIController:
                 break
             
             all_items = root.findall('.//item')
-            print(f"DEBUG: XMLから取得できた rawデータは {len(all_items)} 件です")
             news_list = []
             for item in all_items:
                 title = item.find("title").text
@@ -259,3 +258,4 @@ class CLIController:
 if __name__ == "__main__":
     app = CLIController(GOOGLE_API_KEY)
     app.run()
+

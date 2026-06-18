@@ -53,10 +53,15 @@
             data.articles.forEach(article => {
                 const div = document.createElement("div");
                 div.className = "news-item";
-                div.innerHTML = `
-                    <strong>${article.title}</strong><br>
-                    <button onclick="analyzeArticle('${article.title}', '${article.link}')" style="margin-top: 10px; font-size: 0.9em; background-color: #28a745;">🤖 AIで要約</button>
-                `;
+                const strong = document.createElement("strong");
+                strong.textContent = article.title;
+                const btn = document.createElement("button");
+                btn.textContent = "🤖 AIで要約";
+                btn.style.cssText = "margin-top: 10px; font-size: 0.9em; background-color: #28a745;";
+                btn.addEventListener("click", () => analyzeArticle(article.title, article.link));
+                div.appendChild(strong);
+                div.appendChild(document.createElement("br"));
+                div.appendChild(btn);
                 listDiv.appendChild(div);
             });
         } catch (error) {
