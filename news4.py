@@ -8,7 +8,6 @@ import time
 from google import genai
 
 # --- 【設定：AIの鍵】 ---
-GOOGLE_API_KEY = "AIzaSyDFHpliWr62A5rdsuFvu4Nu5k-42xxhY20"
 client = genai.Client(api_key=GOOGLE_API_KEY)
 
 RSS_URL = 'https://news.yahoo.co.jp/rss/topics/top-picks.xml'
