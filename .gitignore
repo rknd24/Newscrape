@@ -3,3 +3,5 @@ test_history.txt
 
 _pycache__/
 *.pyc
+
+DESIGN_DECISIONS.md
