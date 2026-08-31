@@ -1,10 +1,7 @@
-import ArticleList from "./ArticleList.tsx"
+import ArticleList from "./ArticleList"
 
-function App() {
+export default function App(){
   return(
-    <ArticleList /> 
+    <ArticleList />
   )
-  
 }
-
-export default App

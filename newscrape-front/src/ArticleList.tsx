@@ -1,13 +1,11 @@
-import ArticleCard from "./ArticleCard.tsx"
+import ArticleCard from "./ArticleCard"
 
-const newsArray = Array(5).fill({title:"title"})
+const newArray = Array(4).fill({title:"article"})
 
-
-export default function ArticleList() {
+export default function ArticleList(){
     return(
-        newsArray.map((article,index) => (
-            <ArticleCard title={article.title} key={index} />
-        ))
+        newArray.map((article,index)=>
+        <ArticleCard title={article.title} key={index} />
     )
-    
+)
 }
