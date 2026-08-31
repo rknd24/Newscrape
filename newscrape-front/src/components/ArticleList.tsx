@@ -1,10 +1,16 @@
 import ArticleCard from "./ArticleCard"
-
-const newArray = Array(4).fill({title:"article"})
+import { useState } from "react"
+import { useEffect } from "react"
 
 export default function ArticleList(){
+    const [articleData,setArticleData] = useState<any>([])
+    useEffect(() => {
+        fetch("/news/1").then(res => res.json()).then(data => {
+            setArticleData(data.articles)
+        })
+    },[])
     return(
-        newArray.map((article,index)=>
+        articleData.map((article,index)=>
         <ArticleCard title={article.title} key={index} />
     )
 )
