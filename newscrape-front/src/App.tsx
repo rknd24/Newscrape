@@ -1,4 +1,4 @@
-import ArticleList from "./ArticleList"
+import ArticleList from "./components/ArticleList"
 
 export default function App(){
   return(
