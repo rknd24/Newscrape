@@ -15,7 +15,6 @@ app.add_middleware(
 )
 
 
-
 # 環境変数のチェックと各クラスの準備
 GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY")
 if not GOOGLE_API_KEY:
