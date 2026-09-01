@@ -12,10 +12,12 @@ interface Article {
     link: string;
 }
 
+type Status = "idle" | "loading" | "success" | "error"
+
 export default function ArticleList(){
     const [articleData,setArticleData] = useState<Article[]>([])
     const [category,setCategory] = useState("1")
-    const [state,setState] = useState("idle")
+    const [state,setState] = useState<Status>("idle")
     useEffect(() => {
         setState("loading")
         fetch(`/news/${category}`).then(res => res.json().then(data => ({ok:res.ok,data})))
@@ -46,7 +48,7 @@ export default function ArticleList(){
                     labelId="demo-simple-select-label"
                     id="demo-simple-select"
                     value={category}
-                    label="Age"
+                    label="Category"
                     onChange={handleChange}
                 >
                 <MenuItem value="1">総合</MenuItem>
@@ -55,8 +57,8 @@ export default function ArticleList(){
                 </Select>
             </FormControl>
             </Box>
-            {articleData.map((article,index)=>
-                <ArticleCard title={article.title} link={article.link} key={index} />)}
+            {articleData.map((article)=>
+                <ArticleCard title={article.title} link={article.link} key={article.link} />)}
         </div>
        
     )   

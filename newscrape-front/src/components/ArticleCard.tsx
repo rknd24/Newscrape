@@ -8,7 +8,9 @@ import ReactMarkdown from "react-markdown"
 
 export default function ArticleCard({title,link}:{title:string,link:string}){
     const [Summary,setSummary] = useState("")
-    const handleIsOpen = () => {
+    type State = "idle" | "loading" | "success" | "error"
+    const [state,setState] = useState<State>("idle")
+    const handleSummarize= () => {
         if(state == "idle" || state == "error"){
             setState("loading")
             fetch("/analyze",{
@@ -29,7 +31,7 @@ export default function ArticleCard({title,link}:{title:string,link:string}){
             })
         }
     }
-    const [state,setState] = useState("idle")
+    
     return(
         <Card sx={{width:300}}>
             <CardContent>
@@ -38,7 +40,7 @@ export default function ArticleCard({title,link}:{title:string,link:string}){
                 </Typography>
             </CardContent>
             <CardActions>
-                <Button size="large" onClick={handleIsOpen}>AIで要約</Button>
+                <Button size="large" onClick={handleSummarize}>AIで要約</Button>
             </CardActions>
             <CardContent>
                 {state == "loading" && <p>loading…</p>}
