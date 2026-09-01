@@ -4,6 +4,7 @@ import CardContent from '@mui/material/CardContent';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import { useState } from 'react';
+import ReactMarkdown from "react-markdown"
 
 export default function ArticleCard({title,link}:{title:string,link:string}){
     const [Summary,setSummary] = useState("")
@@ -23,6 +24,9 @@ export default function ArticleCard({title,link}:{title:string,link:string}){
                     setState("error")
                 }
             })
+            .catch(() => {
+                setState("error")
+            })
         }
     }
     const [state,setState] = useState("idle")
@@ -38,8 +42,8 @@ export default function ArticleCard({title,link}:{title:string,link:string}){
             </CardActions>
             <CardContent>
                 {state == "loading" && <p>loading…</p>}
-                {state == "success" && <p>{Summary}</p>}
-                {state == "error" && <p>error</p>}
+                {state == "success" && <ReactMarkdown>{Summary}</ReactMarkdown>}
+                {state == "error" && <p>記事取得に失敗しました。</p>}
             </CardContent>
         </Card>
     )

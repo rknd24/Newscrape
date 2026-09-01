@@ -67,8 +67,8 @@ def analyze_article(request: AnalyzeRequest):
             # 履歴にも保存しておく
         try:
             history_manager.save_article(request.title, report)
-        except:
-            return "保存に失敗しました"
+        except Exception:
+            pass
             
         return {
             "title": request.title,
