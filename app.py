@@ -63,13 +63,18 @@ def analyze_article(request: AnalyzeRequest):
         if raw_text == None:
             raise HTTPException(status_code=404,detail="Item not found")
         report = analyzer.analyze(raw_text)
-        
-        # 履歴にも保存しておく
-        history_manager.save_article(request.title, report)
-        
+            
+            # 履歴にも保存しておく
+        try:
+            history_manager.save_article(request.title, report)
+        except:
+            return "保存に失敗しました"
+            
         return {
             "title": request.title,
             "report": report
         }
+    except HTTPException:
+        raise 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500,detail=str(e))

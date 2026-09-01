@@ -6,20 +6,26 @@ import Typography from '@mui/material/Typography';
 import { useState } from 'react';
 
 export default function ArticleCard({title,link}:{title:string,link:string}){
-    const [isOpen,setIsOpen] = useState(false)
-    const [isSummary,setIsSummary] = useState("")
+    const [Summary,setSummary] = useState("")
     const handleIsOpen = () => {
-        setIsOpen(!isOpen)
-        if(!isOpen){
+        if(state == "idle" || state == "error"){
+            setState("loading")
             fetch("/analyze",{
                 method: "POST",
                 headers: {"Content-Type": "application/json"},
                 body: JSON.stringify({title:title,link:link})
-            }).then(res => res.json()).then(data => {
-                setIsSummary(data.report)
+            }).then(res => res.json().then(data => ({ok:res.ok,data})))
+            .then(({ok,data}) => {
+                if (ok) {
+                    setState("success")
+                    setSummary(data.report)
+                } else {
+                    setState("error")
+                }
             })
         }
     }
+    const [state,setState] = useState("idle")
     return(
         <Card sx={{width:300}}>
             <CardContent>
@@ -31,7 +37,9 @@ export default function ArticleCard({title,link}:{title:string,link:string}){
                 <Button size="large" onClick={handleIsOpen}>AIで要約</Button>
             </CardActions>
             <CardContent>
-                {isOpen && isSummary}
+                {state == "loading" && <p>loading…</p>}
+                {state == "success" && <p>{Summary}</p>}
+                {state == "error" && <p>error</p>}
             </CardContent>
         </Card>
     )
