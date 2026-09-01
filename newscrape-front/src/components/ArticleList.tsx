@@ -41,8 +41,7 @@ export default function ArticleList(){
         <div>
             {state == "loading" && <p>NowLoading…</p>}
             {state == "error" && <p>読み込みに失敗しました。</p>}
-            <Box sx={{ minWidth: 120 }}>
-                <FormControl fullWidth>
+            <FormControl sx={{ minWidth: 200, mb: 3 }}>
                 <InputLabel id="demo-simple-select-label">category</InputLabel>
                 <Select
                     labelId="demo-simple-select-label"
@@ -56,10 +55,10 @@ export default function ArticleList(){
                 <MenuItem value="3">IT</MenuItem>
                 </Select>
             </FormControl>
+            <Box sx={{display:"flex",flexWrap:"wrap",gap:2}}>
+                {articleData.map((article)=> (
+                    <ArticleCard title={article.title} link={article.link} key={article.link} />))}
             </Box>
-            {articleData.map((article)=>
-                <ArticleCard title={article.title} link={article.link} key={article.link} />)}
         </div>
-       
     )   
 }
