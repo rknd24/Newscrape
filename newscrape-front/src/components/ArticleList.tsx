@@ -1,16 +1,11 @@
 import ArticleCard from "./ArticleCard"
-import { useState } from "react"
-import { useEffect } from "react"
+import { useState,useEffect } from "react"
 import Box from '@mui/material/Box';
 import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
 import Select, { type SelectChangeEvent } from '@mui/material/Select';
-
-interface Article {
-    title: string;
-    link: string;
-}
+import {getNews,type Article} from "../api"
 
 type Status = "idle" | "loading" | "success" | "error"
 
@@ -20,15 +15,9 @@ export default function ArticleList(){
     const [state,setState] = useState<Status>("idle")
     useEffect(() => {
         setState("loading")
-        fetch(`/news/${category}`).then(res => res.json().then(data => ({ok:res.ok,data})))
-        .then(({ok,data}) => {
-            if(ok){
-                setArticleData(data.articles);
-                setState("success")
-            } else {
-                setState("error")
-            }
-            
+        getNews(category).then(data => {
+            setState("success")
+            setArticleData(data)
         })
         .catch(() => {
             setState("error")
