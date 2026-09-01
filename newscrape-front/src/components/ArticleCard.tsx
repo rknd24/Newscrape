@@ -5,11 +5,20 @@ import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import { useState } from 'react';
 
-export default function ArticleCard({title}:{title:string}){
+export default function ArticleCard({title,link}:{title:string,link:string}){
     const [isOpen,setIsOpen] = useState(false)
-    const summary = "要約部分"
+    const [isSummary,setIsSummary] = useState("")
     const handleIsOpen = () => {
         setIsOpen(!isOpen)
+        if(!isOpen){
+            fetch("/analyze",{
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({title:title,link:link})
+            }).then(res => res.json()).then(data => {
+                setIsSummary(data.report)
+            })
+        }
     }
     return(
         <Card sx={{width:300}}>
@@ -22,7 +31,7 @@ export default function ArticleCard({title}:{title:string}){
                 <Button size="large" onClick={handleIsOpen}>AIで要約</Button>
             </CardActions>
             <CardContent>
-                {isOpen && summary}
+                {isOpen && isSummary}
             </CardContent>
         </Card>
     )

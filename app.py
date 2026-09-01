@@ -60,6 +60,8 @@ def get_news(category_id: str):
 def analyze_article(request: AnalyzeRequest):
     try:
         raw_text = fetcher.scrape_article(request.link)
+        if raw_text == None:
+            raise HTTPException(status_code=404,detail="Item not found")
         report = analyzer.analyze(raw_text)
         
         # 履歴にも保存しておく

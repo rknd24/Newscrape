@@ -6,7 +6,10 @@ export default defineConfig({
   plugins: [react()],
   server: {
   proxy: {
-    '/news': 'http://localhost:8000'
-  }
+    '/news': 'http://localhost:8000',
+    '/analyze': 'http://localhost:8000'
+  },
+  
+  
 }
 })
