@@ -6,6 +6,7 @@ import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
 import Select, { type SelectChangeEvent } from '@mui/material/Select';
 import {getNews,type Article} from "../api"
+import Button from '@mui/material/Button';
 
 type Status = "idle" | "loading" | "success" | "error"
 
@@ -13,23 +14,28 @@ export default function ArticleList(){
     const [articleData,setArticleData] = useState<Article[]>([])
     const [category,setCategory] = useState("1")
     const [state,setState] = useState<Status>("idle")
-    useEffect(() => {
+    const loadNews = () => {
         setState("loading")
-        getNews(category).then(data => {
+        getNews(category).then(articles => {
             setState("success")
-            setArticleData(data)
+            setArticleData(articles)
         })
-        .catch(() => {
-            setState("error")
-        })
-    },[category])
+        .catch(() => setState("error"))
+    }
+        useEffect(() => {
+            loadNews()
+        }, [category])
      const handleChange = (event: SelectChangeEvent) => {
         setCategory(event.target.value as string);
     };
     return(
         <div>
             {state == "loading" && <p>NowLoading…</p>}
-            {state == "error" && <p>読み込みに失敗しました。</p>}
+            {state == "error" && (
+            <div>
+                <p>読み込みに失敗しました。</p>
+                <Button onClick={loadNews}>再読み込み</Button>
+            </div>)}
             <FormControl sx={{ minWidth: 200, mb: 3 }}>
                 <InputLabel id="demo-simple-select-label">category</InputLabel>
                 <Select
@@ -44,10 +50,12 @@ export default function ArticleList(){
                 <MenuItem value="3">IT</MenuItem>
                 </Select>
             </FormControl>
-            <Box sx={{display:"flex",flexWrap:"wrap",gap:2}}>
-                {articleData.map((article)=> (
-                    <ArticleCard title={article.title} link={article.link} key={article.link} />))}
-            </Box>
+            {state == "success" && (
+                <Box sx={{display:"flex",flexWrap:"wrap",gap:2}}>
+                    {articleData.map((article)=> (
+                        <ArticleCard title={article.title} link={article.link} key={article.link} />))}
+                </Box>
+            )}
         </div>
     )   
 }
