@@ -7,7 +7,7 @@ import { useState } from 'react';
 import ReactMarkdown from "react-markdown"
 import { analyze } from '../api';
 import type { Article } from '../api';
-export default function ArticleCard(article:Article){
+export default function ArticleCard({article}:{article:Article}){
     const [summary,setSummary] = useState("")
     type State = "idle" | "loading" | "success" | "error"
     const [state,setState] = useState<State>("idle")

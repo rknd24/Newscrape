@@ -53,7 +53,7 @@ export default function ArticleList(){
             {state == "success" && (
                 <Box sx={{display:"flex",flexWrap:"wrap",gap:2}}>
                     {articleData.map((article)=> (
-                        <ArticleCard title={article.title} link={article.link} key={article.link} />))}
+                        <ArticleCard article={article} key={article.link} />))}
                 </Box>
             )}
         </div>
