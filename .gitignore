@@ -1,7 +1,9 @@
 history.txt
 test_history.txt
 
-_pycache__/
+__pycache__/
 *.pyc
+
+newscrape.db
 
 DESIGN_DECISIONS.md

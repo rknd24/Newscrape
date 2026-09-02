@@ -3,6 +3,10 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from Newscrape import NewsFetcher, AIAnalyzer, HistoryManager
+from database import engine, Base
+
+# データベースの初期化
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
@@ -59,10 +63,10 @@ def get_news(category_id: str):
 @app.post("/analyze")
 def analyze_article(request: AnalyzeRequest):
     try:
-        raw_text = fetcher.scrape_article(request.link)
-        if raw_text == None:
+        body_text = fetcher.scrape_article(request.link)
+        if body_text == None:
             raise HTTPException(status_code=404,detail="Item not found")
-        report = analyzer.analyze(raw_text)
+        report = analyzer.analyze(body_text)
             
             # 履歴にも保存しておく
         try:
