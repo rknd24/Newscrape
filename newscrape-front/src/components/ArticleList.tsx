@@ -12,7 +12,7 @@ type Status = "idle" | "loading" | "success" | "error"
 
 export default function ArticleList(){
     const [articleData,setArticleData] = useState<Article[]>([])
-    const [category,setCategory] = useState("1")
+    const [category,setCategory] = useState("top-picks")
     const [state,setState] = useState<Status>("idle")
     const loadNews = () => {
         setState("loading")
@@ -45,9 +45,15 @@ export default function ArticleList(){
                     label="Category"
                     onChange={handleChange}
                 >
-                <MenuItem value="1">総合</MenuItem>
-                <MenuItem value="2">経済</MenuItem>
-                <MenuItem value="3">IT</MenuItem>
+                <MenuItem value="top-picks">総合</MenuItem>
+                <MenuItem value="domestic">国内</MenuItem>
+                <MenuItem value="world">国際</MenuItem>
+                <MenuItem value="business">経済</MenuItem>
+                <MenuItem value="entertainment">エンタメ</MenuItem>
+                <MenuItem value="sports">スポーツ</MenuItem>
+                <MenuItem value="it">IT</MenuItem>
+                <MenuItem value="science">科学</MenuItem>
+                <MenuItem value="local">地域</MenuItem>
                 </Select>
             </FormControl>
             {state == "success" && (
