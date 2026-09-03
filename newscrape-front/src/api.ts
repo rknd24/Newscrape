@@ -8,8 +8,9 @@ export interface AnalyzeResponse{
     report: string
 }
 
-export function getNews(category:string): Promise<Article[]>{
-    return fetch(`/news/${category}`)
+export function getNews(category:string,q?:string): Promise<Article[]>{
+const url = q?`/news/${category}?q=${encodeURIComponent(q)}` : `/news/${category}`
+    return fetch(url)
         .then(res => res.json().then(data => ({ok:res.ok,data})))
         .then(({ok,data}) => {
             if(ok){

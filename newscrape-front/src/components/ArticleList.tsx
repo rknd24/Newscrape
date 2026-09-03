@@ -7,16 +7,18 @@ import FormControl from '@mui/material/FormControl';
 import Select, { type SelectChangeEvent } from '@mui/material/Select';
 import {getNews,type Article} from "../api"
 import Button from '@mui/material/Button';
+import Search_Bar from "./SearchBar";
 
 type Status = "idle" | "loading" | "success" | "error"
 
 export default function ArticleList(){
     const [articleData,setArticleData] = useState<Article[]>([])
     const [category,setCategory] = useState("top-picks")
+    const [query,setQuery] = useState("")
     const [state,setState] = useState<Status>("idle")
     const loadNews = () => {
         setState("loading")
-        getNews(category).then(articles => {
+        getNews(category,query).then(articles => {
             setState("success")
             setArticleData(articles)
         })
@@ -24,12 +26,16 @@ export default function ArticleList(){
     }
         useEffect(() => {
             loadNews()
-        }, [category])
-     const handleChange = (event: SelectChangeEvent) => {
+        }, [category,query])
+    const handleChange = (event: SelectChangeEvent) => {
         setCategory(event.target.value as string);
     };
+    const onSearch = (word:string) => {
+        setQuery(word)
+    }
     return(
         <div>
+            <Search_Bar onSearch={onSearch}/>
             {state == "loading" && <p>NowLoading…</p>}
             {state == "error" && (
             <div>

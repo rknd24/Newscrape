@@ -4,7 +4,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, ConfigDict
 from Newscrape import NewsFetcher, AIAnalyzer, HistoryManager
 from database import engine, Base
-import models
 from sqlalchemy import select
 from database import SessionLocal
 from models import Article
@@ -50,14 +49,12 @@ class AnalyzeRequest(BaseModel):
 
 # エンドポイント1: ニュース一覧を取得する
 @app.get("/news/{category_id}",response_model=NewsResponse)
-def get_news(category_id: str):
+def get_news(category_id: str, q: str | None = None):
     with SessionLocal() as session:
-        stmt = (
-            select(Article)
-            .where(Article.category == category_id)
-            .order_by(Article.fetched_at.desc())
-            .limit(30)
-        )
+        stmt = select(Article).where(Article.category == category_id)
+        if q:
+            stmt = stmt.where(Article.title.contains(q))
+        stmt = stmt.order_by(Article.fetched_at.desc()).limit(30)
         rows = session.scalars(stmt).all()
     return NewsResponse(articles=rows)
 
