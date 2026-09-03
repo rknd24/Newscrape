@@ -25,47 +25,37 @@ class AIAnalyzer:
     """Gemini APIを利用したテキスト解析クラス"""
 
     def __init__(self, api_key: str):
-        self.pro_model = "gemini-3.1-pro-preview"
-        self.flash_model = "gemini-2.5-flash"
+        self.model = "gemini-2.5-flash"
         self.client = genai.Client(api_key=api_key)
 
     def analyze(self, raw_text: str) -> str:
-        """
-        記事本文を解析する。
-        Proモデルで429エラー(Rate Limit)が発生した場合は、Flashモデルへ自動フォールバックする。
-        """
+        """記事本文を解析し、要約を返す"""
         try:
-            return self._call_gemini(self.pro_model, raw_text)
+            return self._call_gemini(raw_text)
         except Exception as e:
-            if "429" in str(e):
-                print(
-                    f"\n[Warning] {self.pro_model} rate limit exceeded. Fallback to {self.flash_model}..."
-                )
-                try:
-                    return self._call_gemini(self.flash_model, raw_text)
-                except Exception as e2:
-                    return f"[Error] Fallback model failed: {e2}"
             return f"[Error] Analysis failed: {e}"
 
-    def _call_gemini(self, model_name: str, raw_text: str) -> str:
+    def _call_gemini(self, raw_text: str) -> str:
         prompt = f"""
-        あなたは情報理工学部の学生として、以下のニュースを分析してください。
+        以下のニュース記事を、一般の読者向けに短く要約してください。
+        体言止めを使い、冗長な表現は避けること。
+        出力は必ず次の3つの見出しで、各項目2文以内。
 
-        【要件】
-        1. 簡潔な文体（体言止め等）を用い、冗長な表現を避けること。
-        2. 技術的背景や経済的インパクトを、エンジニアの視点で深掘りすること。
-        3. 学生の学習や開発にどう活かせるかの考察を含めること。
+        ■ 経緯
+        何が、どういう流れで起きたか。
 
-        【出力構成】
-        ■ 概要
-        ■ 技術・経済的要点
-        ■ 考察
+        ■ ポイント
+        専門用語や技術的な内容があれば、一般の人にわかる言葉で。
 
-        記事原文: 
-        {raw_text[:5000]}
+        ■ 影響
+        私たちの生活や社会にどう関わるか。憶測は避け、記事から読み取れる範囲で。
+
+        記事本文:
+        {raw_text[:3000]}
         """
+
         response = self.client.models.generate_content(
-            model=model_name, contents=prompt
+            model=self.model, contents=prompt
         )
         return response.text
 
