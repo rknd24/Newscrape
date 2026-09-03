@@ -2,7 +2,7 @@ import os
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, ConfigDict
-from Newscrape import NewsFetcher, AIAnalyzer, HistoryManager
+from Newscrape import NewsFetcher, AIAnalyzer
 from database import engine, Base
 from sqlalchemy import select
 from database import SessionLocal
@@ -40,7 +40,6 @@ if not GOOGLE_API_KEY:
 
 fetcher = NewsFetcher()
 analyzer = AIAnalyzer(api_key=GOOGLE_API_KEY)
-history_manager = HistoryManager()
 
 # リクエストのデータ形式を定義
 class AnalyzeRequest(BaseModel):
@@ -62,23 +61,38 @@ def get_news(category_id: str, q: str | None = None):
 # エンドポイント2: 記事をスクレイピングしてAI分析する
 @app.post("/analyze")
 def analyze_article(article: AnalyzeRequest):
-    try:
-        body_text = fetcher.scrape_article(article.link)
-        if body_text == None:
-            raise HTTPException(status_code=404,detail="Item not found")
-        report = analyzer.analyze(body_text)
-            
-            # 履歴にも保存しておく
+    with SessionLocal() as session:
         try:
-            history_manager.save_article(article.title, report)
-        except Exception:
-            pass
-            
-        return {
-            "title": article.title,
-            "report": report
-        }
-    except HTTPException:
-        raise 
-    except Exception as e:
-        raise HTTPException(status_code=500,detail=str(e))
+            row = session.scalar(select(Article).where(Article.link == article.link))
+            if row is None:
+                raise HTTPException(status_code=404, detail="Article not found in the database.")
+            if row.summary is not None:
+                return {
+                    "title": row.title,
+                    "report": row.summary
+                }
+            else:
+                # 記事本文をスクレイピング
+                body_text = fetcher.scrape_article(article.link)
+                if body_text is None:
+                    raise HTTPException(status_code=404, detail="Failed to fetch article body.")
+                
+                # AI分析
+                summary = analyzer.analyze(body_text)
+                if summary.startswith("[Error]"):
+                    raise HTTPException(status_code=502,detail="AI分析に失敗しました。")
+                
+                # データベースに保存
+                row.body_text = body_text
+                row.summary = summary
+                session.commit()
+                
+                return {
+                    "title": row.title,
+                    "report": summary
+                }
+        
+        except HTTPException:
+            raise 
+        except Exception as e:
+            raise HTTPException(status_code=500,detail=str(e))

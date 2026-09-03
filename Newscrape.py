@@ -76,7 +76,7 @@ class NewsFetcher:
 
     def fetch_rss_root(self, url: str) -> ET.Element | None:
         try:
-            with urllib.request.urlopen(url) as response:
+            with urllib.request.urlopen(url,timeout=10) as response:
                 return ET.fromstring(response.read())
         except Exception as e:
             print(f"[Error] Failed to fetch RSS: {e}")
