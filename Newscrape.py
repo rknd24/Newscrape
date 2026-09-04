@@ -4,38 +4,35 @@ import xml.etree.ElementTree as ET
 import requests
 from bs4 import BeautifulSoup
 import unicodedata
-from google import genai
 from rich.console import Console
 from rich.markdown import Markdown
 from rich.panel import Panel
 from rich import box
 import datetime
+from groq import Groq
 
 console = Console()
 
 # --- Configuration ---
-GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY")
-
-if not GOOGLE_API_KEY:
-    raise ValueError("Environment variable 'GOOGLE_API_KEY' is not set.")
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
 
 
 # --- AI Analyzer Module ---
 class AIAnalyzer:
-    """Gemini APIを利用したテキスト解析クラス"""
+    """Llama APIを利用したテキスト解析クラス"""
 
     def __init__(self, api_key: str):
-        self.model = "gemini-2.5-flash"
-        self.client = genai.Client(api_key=api_key)
+        self.model = "qwen/qwen3.8-27b"
+        self.client = Groq(api_key=api_key)
 
     def analyze(self, raw_text: str) -> str:
         """記事本文を解析し、要約を返す"""
         try:
-            return self._call_gemini(raw_text)
+            return self._call_llama(raw_text)
         except Exception as e:
             return f"[Error] Analysis failed: {e}"
 
-    def _call_gemini(self, raw_text: str) -> str:
+    def _call_llama(self, raw_text: str) -> str:
         prompt = f"""
         以下のニュース記事を、一般の読者向けに短く要約してください。
         体言止めを使い、冗長な表現は避けること。
@@ -54,10 +51,10 @@ class AIAnalyzer:
         {raw_text[:3000]}
         """
 
-        response = self.client.models.generate_content(
-            model=self.model, contents=prompt
+        response = self.client.chat.completions.create(
+            model=self.model, messages=[{"role": "user", "content": prompt}]
         )
-        return response.text
+        return response.choices[0].message.content
 
 
 # --- Scraper Module ---
@@ -246,6 +243,10 @@ class CLIController:
 
 
 if __name__ == "__main__":
-    app = CLIController(GOOGLE_API_KEY)
+    key = os.environ.get("GROQ_API_KEY")
+    if not key:
+        raise ValueError("Environment variable 'GROQ_API_KEY' is not set.")
+    app = CLIController(key)
     app.run()
+
 

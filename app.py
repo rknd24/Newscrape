@@ -34,12 +34,12 @@ class NewsResponse(BaseModel):
 
 
 # 環境変数のチェックと各クラスの準備
-GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY")
-if not GOOGLE_API_KEY:
-    raise ValueError("Environment variable 'GOOGLE_API_KEY' is not set.")
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
+if not GROQ_API_KEY:
+    raise ValueError("Environment variable 'GROQ_API_KEY' is not set.")
 
 fetcher = NewsFetcher()
-analyzer = AIAnalyzer(api_key=GOOGLE_API_KEY)
+analyzer = AIAnalyzer(api_key=GROQ_API_KEY)
 
 # リクエストのデータ形式を定義
 class AnalyzeRequest(BaseModel):
