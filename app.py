@@ -1,17 +1,43 @@
 import os
+from contextlib import asynccontextmanager
+from datetime import datetime
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, ConfigDict
+from apscheduler.schedulers.background import BackgroundScheduler
 from Newscrape import NewsFetcher, AIAnalyzer
 from database import engine, Base
 from sqlalchemy import select
 from database import SessionLocal
 from models import Article
+from ingest import ingest, generate_summaries
 
 # データベースの初期化
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI()
+
+def run_ingest_job():
+    """RSS取り込み + 要約の事前生成をまとめて実行する定期ジョブ"""
+    try:
+        ingest()
+        generate_summaries()
+    except Exception as e:
+        print(f"[Error] 定期取り込みジョブが失敗しました: {e}")
+
+
+scheduler = BackgroundScheduler()
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # 起動直後に1回、そのあと30分おきに実行。バックグラウンドスレッドで動くのでAPIの応答をブロックしない
+    scheduler.add_job(run_ingest_job, "interval", minutes=30, next_run_time=datetime.now())
+    scheduler.start()
+    yield
+    scheduler.shutdown()
+
+
+app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -28,6 +54,7 @@ class ArticleOut(BaseModel):
     link: str
     category: str
     summary: str | None
+    fetched_at: datetime
 
 class NewsResponse(BaseModel):
     articles: list[ArticleOut]
