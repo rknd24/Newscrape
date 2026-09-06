@@ -57,6 +57,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# スリープ防止の外部監視（UptimeRobot）が叩く。DBは触らない
+@app.get("/health")
+def health():
+    return {"ok": True}
+
+
 class ArticleOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int
