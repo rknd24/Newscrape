@@ -1,0 +1,30 @@
+name: ingest
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"   # 30分おき（GitHub側の混雑で数分ずれることがある）
+  workflow_dispatch: {}        # 手動実行も可
+
+# 前の実行が終わっていなくても次を待たせ、重複起動を防ぐ
+concurrency:
+  group: ingest
+  cancel-in-progress: false
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12.7"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - run: python ingest.py
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
