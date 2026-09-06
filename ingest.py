@@ -29,8 +29,13 @@ def ingest():
                 continue
 
             for item in root.findall(".//item"):
-                title = item.find("title").text
-                link = item.find("link").text
+                title_el = item.find("title")
+                link_el = item.find("link")
+                # RSSが壊れていて title / link が欠けている item はスキップ（ここで死なせない）
+                if title_el is None or link_el is None or not title_el.text or not link_el.text:
+                    continue
+                title = title_el.text
+                link = link_el.text
 
                 if link in seen:
                     continue  # 重複するリンクはスキップ
