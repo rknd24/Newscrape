@@ -27,22 +27,32 @@ def run_ingest_job():
 
 scheduler = BackgroundScheduler()
 
+# 本番(Render)では取り込みを GitHub Actions に任せるのでスケジューラはオフ。
+# ローカルは既定でオン。ENABLE_SCHEDULER=0 で明示的に切れる。
+ENABLE_SCHEDULER = os.environ.get("ENABLE_SCHEDULER", "1") == "1"
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # 起動直後に1回、そのあと30分おきに実行。バックグラウンドスレッドで動くのでAPIの応答をブロックしない
-    scheduler.add_job(run_ingest_job, "interval", minutes=30, next_run_time=datetime.now())
-    scheduler.start()
+    if ENABLE_SCHEDULER:
+        # 起動直後に1回、そのあと30分おきに実行。バックグラウンドスレッドで動くのでAPIの応答をブロックしない
+        scheduler.add_job(run_ingest_job, "interval", minutes=30, next_run_time=datetime.now())
+        scheduler.start()
     yield
-    scheduler.shutdown()
+    if scheduler.running:
+        scheduler.shutdown()
 
 
 app = FastAPI(lifespan=lifespan)
 
+# 本番はフロントのドメインだけ許可。未設定なら開発用に全許可。
+# 例: ALLOWED_ORIGINS="https://newscrape.pages.dev"
+ALLOWED_ORIGINS = os.environ.get("ALLOWED_ORIGINS", "*").split(",")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
+    allow_origins=ALLOWED_ORIGINS,
+    allow_credentials=False,  # Cookie/認証は使っていない
     allow_methods=["*"],
     allow_headers=["*"],
 )
