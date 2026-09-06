@@ -12,9 +12,15 @@ export interface AnalyzeResponse {
     report: string
 }
 
+// 本番はビルド時に VITE_API_BASE（Renderの https://xxx.onrender.com）を注入する。
+// ローカルは空文字 → Vite の proxy が /news, /analyze を localhost:8000 に転送する。
+const API_BASE = import.meta.env.VITE_API_BASE ?? ""
+
 export function getNews(category: string, q?: string): Promise<Article[]> {
-    const url = q ? `/news/${category}?q=${encodeURIComponent(q)}` : `/news/${category}`
-    return fetch(url)
+    const path = q
+        ? `/news/${category}?q=${encodeURIComponent(q)}`
+        : `/news/${category}`
+    return fetch(API_BASE + path)
         .then(res => res.json().then(data => ({ ok: res.ok, data })))
         .then(({ ok, data }) => {
             if (ok) {
@@ -26,7 +32,7 @@ export function getNews(category: string, q?: string): Promise<Article[]> {
 }
 
 export function analyze(article: Article): Promise<AnalyzeResponse> {
-    return fetch(`/analyze`, {
+    return fetch(API_BASE + `/analyze`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
