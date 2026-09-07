@@ -53,7 +53,11 @@ class AIAnalyzer:
         """
 
         response = self.client.chat.completions.create(
-            model=self.model, messages=[{"role": "user", "content": prompt}]
+            model=self.model,
+            messages=[{"role": "user", "content": prompt}],
+            # 出力上限を明示。Groq無料枠は1分1000出力トークンで、未指定だと
+            # 予想出力がそれを超える記事が丸ごと弾かれる（429 Request too large）
+            max_completion_tokens=700,
         )
         return response.choices[0].message.content
 
