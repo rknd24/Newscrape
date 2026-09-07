@@ -93,9 +93,15 @@ class AnalyzeRequest(BaseModel):
 @app.get("/news/{category_id}",response_model=NewsResponse)
 def get_news(category_id: str, q: str | None = None):
     with SessionLocal() as session:
-        stmt = select(Article).where(Article.category == category_id)
+        stmt = select(Article)
+        # "all" のときはカテゴリで絞らない（総合 = 全カテゴリ横断）
+        if category_id != "all":
+            stmt = stmt.where(Article.category == category_id)
         if q:
-            stmt = stmt.where(Article.title.contains(q))
+            # タイトルだけでなく本文も対象にする（「大谷」は見出しに出るが「大谷翔平」は本文にしか出ない等）
+            stmt = stmt.where(
+                Article.title.contains(q) | Article.body_text.contains(q)
+            )
         stmt = stmt.order_by(Article.fetched_at.desc()).limit(30)
         rows = session.scalars(stmt).all()
     return NewsResponse(articles=rows)

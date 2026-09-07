@@ -4,8 +4,9 @@ from models import Article
 from Newscrape import NewsFetcher,AIAnalyzer
 import os
 
+# top-picks は他カテゴリの寄せ集めで、取り込むと同じ記事が先勝ちで top-picks 扱いになり
+# 各カテゴリから消える。総合(=all)は app.py 側で全カテゴリ横断にしたので top-picks は取り込まない
 rss_map = {
-    "top-picks": "https://news.yahoo.co.jp/rss/topics/top-picks.xml",
     "business": "https://news.yahoo.co.jp/rss/topics/business.xml",
     "it": "https://news.yahoo.co.jp/rss/topics/it.xml",
     "domestic": "https://news.yahoo.co.jp/rss/topics/domestic.xml",

@@ -11,7 +11,7 @@ import { getNews, type Article } from "../api"
 type Status = "idle" | "loading" | "success" | "error"
 
 const CATEGORIES = [
-    { value: "top-picks", label: "総合" },
+    { value: "all", label: "総合" },
     { value: "domestic", label: "国内" },
     { value: "world", label: "国際" },
     { value: "business", label: "経済" },
@@ -24,7 +24,7 @@ const CATEGORIES = [
 
 export default function ArticleList() {
     const [articleData, setArticleData] = useState<Article[]>([])
-    const [category, setCategory] = useState("top-picks")
+    const [category, setCategory] = useState("all")
     const [query, setQuery] = useState("")
     const [state, setState] = useState<Status>("idle")
 
