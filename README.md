@@ -2,7 +2,7 @@
 
 広告や視覚的ノイズを排除し、主要ニュースを要約付きで最短で読むためのWebアプリ。
 
-**ライブ:** https://newscrape-front.konriku-170824.workers.dev/
+**ライブ:** https://newscrape-front.rknd24.workers.dev/
 
 Yahoo! ニュースの各カテゴリRSSを定期的に取り込み、記事本文をAIで「経緯 / ポイント / 影響」の3段に要約する。ユーザーは一覧をスキャンし、気になった記事だけ要約を展開して、必要なら元記事へ飛ぶ。
 
