@@ -141,18 +141,15 @@ def chat(chat_request: ChatRequest):
 
     with SessionLocal() as session:
         try:
-            # context は先頭20件までに絞る（8K TPM に余裕を持たせる。古い記事は prune_old で消えるので
-            # カテゴリ別ならほぼ全記事が入る）。フロントは新しい順で ids を送ってくる
-            target_ids = articles_ids[:20]
-            articles = session.scalars(select(Article).where(Article.id.in_(target_ids))).all()
+            # フロントは「AIに聞く」で選んだ記事の id を送ってくる（基本1件）。
+            # その記事の本文を context にして深掘りに答える
+            articles = session.scalars(select(Article).where(Article.id.in_(articles_ids))).all()
             if not articles:
                 raise HTTPException(status_code=404, detail="Articles not found in the database.")
-            #記事の本文を結合する
-            if len(articles) == 1:
-                a = articles[0]
-                context = f"記事タイトル: {a.title}\n記事本文: {a.body_text or a.summary or ""}"
-            else:
-                context = "\n".join(f"記事タイトル: {a.title}\n記事本文: {a.summary or ""}" for a in articles)
+            context = "\n\n".join(
+                f"記事タイトル: {a.title}\n記事本文: {a.body_text or a.summary or ''}"
+                for a in articles
+            )
             #AIに質問する
             answer = analyzer.chat(
                 context,

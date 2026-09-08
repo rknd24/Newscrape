@@ -5,9 +5,7 @@ import Tabs from '@mui/material/Tabs'
 import Tab from '@mui/material/Tab'
 import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
-import Fab from '@mui/material/Fab'
 import IconButton from '@mui/material/IconButton'
-import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome'
 import CloseIcon from '@mui/icons-material/Close'
 import Search_Bar from "./SearchBar"
 import { getNews, type Article } from "../api"
@@ -32,7 +30,8 @@ export default function ArticleList() {
     const [category, setCategory] = useState("all")
     const [query, setQuery] = useState("")
     const [state, setState] = useState<Status>("idle")
-    const [chatOpen, setChatOpen] = useState(false)
+    // AIパネルで深掘り中の記事。null ならパネルは閉じている
+    const [focusedId, setFocusedId] = useState<number | null>(null)
 
     const loadNews = () => {
         setState("loading")
@@ -47,6 +46,8 @@ export default function ArticleList() {
     useEffect(() => {
         loadNews()
     }, [category, query])
+
+    const focusedArticle = articleData.find(a => a.id === focusedId)
 
     return (
         <Box sx={{ display: "flex", gap: 3, alignItems: "flex-start" }}>
@@ -80,17 +81,22 @@ export default function ArticleList() {
                 {state === "success" && (
                     <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2 }}>
                         {articleData.map(article => (
-                            <ArticleCard article={article} key={article.link} />
+                            <ArticleCard
+                                article={article}
+                                key={article.link}
+                                onAskAI={setFocusedId}
+                            />
                         ))}
                     </Box>
                 )}
             </Box>
 
-            {/* 右: AIチャット。開いているときだけ横に居座る（背景は暗くしない）。
-                閉じても display:none にするだけでアンマウントしない = 会話を保持 */}
+            {/* 右: AIパネル。記事の「AIに聞く」で開く。その1記事に絞って深掘りする。
+                閉じても display:none にするだけでアンマウントしない = 会話を保持。
+                別の記事を選ぶと key が変わって Chat が作り直され、会話がリセットされる */}
             <Box
                 sx={{
-                    display: chatOpen ? "flex" : "none",
+                    display: focusedId !== null ? "flex" : "none",
                     // スマホは全画面固定、PCは横並びの sticky サイドバー
                     position: { xs: "fixed", md: "sticky" },
                     inset: { xs: 0, md: "auto" },
@@ -112,35 +118,33 @@ export default function ArticleList() {
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "space-between",
+                        gap: 1,
                         px: 2,
                         py: 1,
                         borderBottom: 1,
                         borderColor: "divider",
                     }}
                 >
-                    <Typography sx={{ fontWeight: 600 }}>AIに質問</Typography>
-                    <IconButton onClick={() => setChatOpen(false)} size="small">
+                    <Box sx={{ minWidth: 0 }}>
+                        <Typography variant="caption" color="text.secondary">
+                            この記事についてAIに質問
+                        </Typography>
+                        <Typography sx={{ fontWeight: 600, fontSize: 14 }} noWrap>
+                            {focusedArticle?.title ?? ""}
+                        </Typography>
+                    </Box>
+                    <IconButton onClick={() => setFocusedId(null)} size="small">
                         <CloseIcon />
                     </IconButton>
                 </Box>
 
                 <Box sx={{ flex: 1, minHeight: 0 }}>
-                    <Chat articles_ids={articleData.map(a => a.id)} />
+                    <Chat
+                        key={focusedId}
+                        articles_ids={focusedId !== null ? [focusedId] : []}
+                    />
                 </Box>
             </Box>
-
-            {/* 開くボタン。パネルが閉じているときだけ表示 */}
-            {!chatOpen && (
-                <Fab
-                    color="primary"
-                    variant="extended"
-                    onClick={() => setChatOpen(true)}
-                    sx={{ position: "fixed", bottom: 24, right: 24 }}
-                >
-                    <AutoAwesomeIcon sx={{ mr: 1 }} />
-                    AIに質問
-                </Fab>
-            )}
         </Box>
     )
 }

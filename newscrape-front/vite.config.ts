@@ -5,12 +5,14 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   server: {
-  proxy: {
-    '/news': 'http://localhost:8000',
-    '/analyze': 'http://localhost:8000',
-    '/chat': 'http://localhost:8000'
+    // Newscrape 専用ポート。他アプリと取り合わないよう固定。
+    // strictPort: 埋まっていたら別ポートに逃げず、エラーで気づけるようにする
+    port: 5180,
+    strictPort: true,
+    proxy: {
+      '/news': 'http://localhost:8000',
+      '/analyze': 'http://localhost:8000',
+      '/chat': 'http://localhost:8000',
+    },
   },
-  
-  
-}
 })

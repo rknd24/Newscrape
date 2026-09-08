@@ -1,6 +1,7 @@
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import CardActions from '@mui/material/CardActions'
+import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Link from '@mui/material/Link'
 import Collapse from '@mui/material/Collapse'
@@ -13,7 +14,12 @@ import { formatRelativeTime } from '../formatRelativeTime'
 
 type State = "idle" | "loading" | "success" | "error"
 
-export default function ArticleCard({ article }: { article: Article }) {
+type Props = {
+    article: Article
+    onAskAI: (id: number) => void
+}
+
+export default function ArticleCard({ article, onAskAI }: Props) {
     const [open, setOpen] = useState(false)
     const [summary, setSummary] = useState(article.summary ?? "")
     const [state, setState] = useState<State>(article.summary ? "success" : "idle")
@@ -43,9 +49,14 @@ export default function ArticleCard({ article }: { article: Article }) {
                 </Typography>
             </CardContent>
             <CardActions sx={{ justifyContent: "space-between" }}>
-                <Button size="small" onClick={handleToggle}>
-                    {open ? "閉じる" : "要約"}
-                </Button>
+                <Box>
+                    <Button size="small" onClick={handleToggle}>
+                        {open ? "閉じる" : "要約"}
+                    </Button>
+                    <Button size="small" onClick={() => onAskAI(article.id)}>
+                        AIに聞く
+                    </Button>
+                </Box>
                 <Link href={article.link} target="_blank" rel="noopener" variant="body2">
                     元記事
                 </Link>
