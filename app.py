@@ -9,7 +9,7 @@ from database import engine, Base
 from sqlalchemy import select
 from database import SessionLocal
 from models import Article
-from ingest import ingest, generate_summaries, prune_old
+from ingest import ingest, reset_broken_summaries, generate_summaries, prune_old
 from schemas import NewsResponse, AnalyzeRequest, ChatRequest, ChatResponse
 
 # データベースの初期化
@@ -20,6 +20,7 @@ def run_ingest_job():
     """RSS取り込み + 要約の事前生成をまとめて実行する定期ジョブ"""
     try:
         ingest()
+        reset_broken_summaries()
         generate_summaries()
         prune_old()
     except Exception as e:

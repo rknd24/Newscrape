@@ -58,6 +58,27 @@ def ingest():
 
     print(f"{added} 件追加した")
 
+def reset_broken_summaries():
+    """途中で切れた要約を NULL に戻し、再生成の対象にする。
+
+    モデル切り替え時などに、3セクション目「■ 影響」が欠けた要約や極端に短い
+    要約が保存されてしまうことがある。cron のたびに拾い直す。
+    """
+    with SessionLocal() as session:
+        rows = session.scalars(
+            select(Article).where(Article.summary.is_not(None))
+        ).all()
+        reset = 0
+        for a in rows:
+            s = a.summary or ""
+            if "■ 影響" not in s or len(s) < 40:
+                a.summary = None
+                a.body_text = None
+                reset += 1
+        session.commit()
+    print(f"{reset} 件の壊れた要約をリセットした")
+
+
 def generate_summaries():
     fetcher = NewsFetcher()
     analyzer = AIAnalyzer(api_key=os.environ.get("GROQ_API_KEY"))
@@ -97,5 +118,6 @@ def prune_old(days: int = 4):
 
 if __name__ == "__main__":
     ingest()
+    reset_broken_summaries()
     generate_summaries()
     prune_old()

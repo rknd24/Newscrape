@@ -54,11 +54,16 @@ class AIAnalyzer:
         response = self.client.chat.completions.create(
             model=self.model,
             messages=[{"role": "user", "content": prompt}],
-            # 出力上限を明示。Groq無料枠は1分1000出力トークンで、未指定だと
-            # 予想出力がそれを超える記事が丸ごと弾かれる（429 Request too large）
-            max_completion_tokens=700,
+            # gpt-oss は答える前に推論トークンを大量に吐く。max_completion_tokens は
+            # 推論+出力の合計なので、reasoning_effort=low で推論を抑えつつ上限も広めに取る
+            reasoning_effort="low",
+            max_completion_tokens=1500,
         )
-        return response.choices[0].message.content
+        choice = response.choices[0]
+        if choice.finish_reason == "length":
+            # 上限で途中打ち切り。壊れた要約を保存しないよう例外にする
+            raise RuntimeError("要約が出力トークン上限で打ち切られた")
+        return choice.message.content
 
     def chat(self,context:str,question:str,history:list[dict[str,str]]|None)->str:
         SYSTEM_PROMPT = (
@@ -78,7 +83,8 @@ class AIAnalyzer:
         response = self.client.chat.completions.create(
             model=self.model,
             messages=messages,
-            max_completion_tokens=400,
+            reasoning_effort="low",
+            max_completion_tokens=800,
         )
         return response.choices[0].message.content
 
