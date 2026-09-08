@@ -3,14 +3,14 @@ from contextlib import asynccontextmanager
 from datetime import datetime
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, ConfigDict
 from apscheduler.schedulers.background import BackgroundScheduler
 from Newscrape import NewsFetcher, AIAnalyzer
 from database import engine, Base
 from sqlalchemy import select
 from database import SessionLocal
 from models import Article
-from ingest import ingest, generate_summaries
+from ingest import ingest, generate_summaries, prune_old
+from schemas import NewsResponse, AnalyzeRequest, ChatRequest, ChatResponse
 
 # データベースの初期化
 Base.metadata.create_all(bind=engine)
@@ -21,6 +21,7 @@ def run_ingest_job():
     try:
         ingest()
         generate_summaries()
+        prune_old()
     except Exception as e:
         print(f"[Error] 定期取り込みジョブが失敗しました: {e}")
 
@@ -63,19 +64,6 @@ def health():
     return {"ok": True}
 
 
-class ArticleOut(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-    id: int
-    title: str
-    link: str
-    category: str
-    summary: str | None
-    fetched_at: datetime
-
-class NewsResponse(BaseModel):
-    articles: list[ArticleOut]
-
-
 # 環境変数のチェックと各クラスの準備
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
 if not GROQ_API_KEY:
@@ -84,10 +72,6 @@ if not GROQ_API_KEY:
 fetcher = NewsFetcher()
 analyzer = AIAnalyzer(api_key=GROQ_API_KEY)
 
-# リクエストのデータ形式を定義
-class AnalyzeRequest(BaseModel):
-    link: str
-    title: str
 
 # エンドポイント1: ニュース一覧を取得する
 @app.get("/news/{category_id}",response_model=NewsResponse)
@@ -145,3 +129,39 @@ def analyze_article(article: AnalyzeRequest):
             raise 
         except Exception as e:
             raise HTTPException(status_code=500,detail=str(e))
+
+
+
+#エンドポイント3　:Chat機能を実装する
+@app.post("/chat",response_model=ChatResponse)
+def chat(chat_request: ChatRequest):
+    question = chat_request.question
+    articles_ids = chat_request.articles_ids
+    history = chat_request.history
+
+    with SessionLocal() as session:
+        try:
+            # context は先頭20件までに絞る（8K TPM に余裕を持たせる。古い記事は prune_old で消えるので
+            # カテゴリ別ならほぼ全記事が入る）。フロントは新しい順で ids を送ってくる
+            target_ids = articles_ids[:20]
+            articles = session.scalars(select(Article).where(Article.id.in_(target_ids))).all()
+            if not articles:
+                raise HTTPException(status_code=404, detail="Articles not found in the database.")
+            #記事の本文を結合する
+            if len(articles) == 1:
+                a = articles[0]
+                context = f"記事タイトル: {a.title}\n記事本文: {a.body_text or a.summary or ""}"
+            else:
+                context = "\n".join(f"記事タイトル: {a.title}\n記事本文: {a.summary or ""}" for a in articles)
+            #AIに質問する
+            answer = analyzer.chat(
+                context,
+                question,
+                [{"role": h.role, "content": h.content} for h in history]
+            )
+            return {"answer":answer}
+        except HTTPException:
+            raise 
+        except Exception as e:
+            raise HTTPException(status_code=500,detail=str(e))
+

@@ -10,7 +10,6 @@ from rich.panel import Panel
 from rich import box
 import datetime
 from groq import Groq
-
 console = Console()
 
 # --- Configuration ---
@@ -22,7 +21,7 @@ class AIAnalyzer:
     """Llama APIを利用したテキスト解析クラス"""
 
     def __init__(self, api_key: str):
-        self.model = "qwen/qwen3.8-27b"
+        self.model = "openai/gpt-oss-120b"
         self.client = Groq(api_key=api_key)
 
     def analyze(self, raw_text: str) -> str:
@@ -60,6 +59,27 @@ class AIAnalyzer:
             max_completion_tokens=700,
         )
         return response.choices[0].message.content
+
+    def chat(self,context:str,question:str,history:list[dict[str,str]]|None)->str:
+        SYSTEM_PROMPT = (
+        "記事に書かれたニュースの事実は記事を根拠にする。"
+        "記事にない一般的な知識で補足・説明してよいが、記事の事実と混同しない。"
+        "記事から答えようのない完全に無関係な質問のときだけ、その旨を簡潔に伝える。"
+        )
+
+        messages = [{"role": "system", "content": f"{SYSTEM_PROMPT}\n\n{context}"}]
+
+        if history:
+            messages.extend(history)
+        messages.append({"role": "user", "content": question})
+
+        response = self.client.chat.completions.create(
+            model=self.model,
+            messages=messages,
+            max_completion_tokens=400,
+        )
+        return response.choices[0].message.content
+
 
 
 # --- Scraper Module ---

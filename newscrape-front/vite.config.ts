@@ -7,7 +7,8 @@ export default defineConfig({
   server: {
   proxy: {
     '/news': 'http://localhost:8000',
-    '/analyze': 'http://localhost:8000'
+    '/analyze': 'http://localhost:8000',
+    '/chat': 'http://localhost:8000'
   },
   
   

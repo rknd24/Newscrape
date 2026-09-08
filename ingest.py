@@ -1,4 +1,5 @@
-from sqlalchemy import select
+from datetime import datetime, timedelta, timezone
+from sqlalchemy import select, delete
 from database import SessionLocal
 from models import Article
 from Newscrape import NewsFetcher,AIAnalyzer
@@ -79,8 +80,22 @@ def generate_summaries():
             print(f"Generated summary for {article.link}")
 
 
+def prune_old(days: int = 4):
+    """一定日数より古い記事を削除する。
+
+    Yahoo トピックスの記事は数日で鮮度が落ちる。ためこむと総合タブや
+    チャットの context が古い記事で薄まり、DB も肥大化する。cron で毎回呼ぶ。
+    """
+    cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+    with SessionLocal() as session:
+        result = session.execute(
+            delete(Article).where(Article.fetched_at < cutoff)
+        )
+        session.commit()
+    print(f"{result.rowcount} 件削除した（{days}日より古い記事）")
 
 
 if __name__ == "__main__":
     ingest()
     generate_summaries()
+    prune_old()

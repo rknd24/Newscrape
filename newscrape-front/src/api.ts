@@ -12,6 +12,11 @@ export interface AnalyzeResponse {
     report: string
 }
 
+export interface ChatMessage {
+    role: 'user' | 'assistant'
+    content: string
+}
+
 // 本番はビルド時に VITE_API_BASE（Renderの https://xxx.onrender.com）を注入する。
 // ローカルは空文字 → Vite の proxy が /news, /analyze を localhost:8000 に転送する。
 const API_BASE = import.meta.env.VITE_API_BASE ?? ""
@@ -44,6 +49,23 @@ export function analyze(article: Article): Promise<AnalyzeResponse> {
                 return data
             } else {
                 throw new Error("Failed to analyze article")
+            }
+        })
+}
+
+export function chat(question: string, articles_ids: number[], history: ChatMessage[]): Promise<{ answer: string }> {
+    return fetch(API_BASE + `/chat`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ question, articles_ids, history })
+    }).then(res => res.json().then(data => ({ ok: res.ok, data })))
+        .then(({ ok, data }) => {
+            if (ok) {
+                return data
+            } else {
+                throw new Error("Failed to chat")
             }
         })
 }
