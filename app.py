@@ -137,20 +137,17 @@ def analyze_article(article: AnalyzeRequest):
 @app.post("/chat",response_model=ChatResponse)
 def chat(chat_request: ChatRequest):
     question = chat_request.question
-    articles_ids = chat_request.articles_ids
+    article_id = chat_request.article_id
     history = chat_request.history
 
     with SessionLocal() as session:
         try:
-            # フロントは「AIに聞く」で選んだ記事の id を送ってくる（基本1件）。
+            # フロントは「AIに聞く」で選んだ1記事の id を送ってくる。
             # その記事の本文を context にして深掘りに答える
-            articles = session.scalars(select(Article).where(Article.id.in_(articles_ids))).all()
-            if not articles:
-                raise HTTPException(status_code=404, detail="Articles not found in the database.")
-            context = "\n\n".join(
-                f"記事タイトル: {a.title}\n記事本文: {a.body_text or a.summary or ''}"
-                for a in articles
-            )
+            article = session.scalar(select(Article).where(Article.id == article_id))
+            if article is None:
+                raise HTTPException(status_code=404, detail="Article not found in the database.")
+            context = f"記事タイトル: {article.title}\n記事本文: {article.body_text or article.summary or ''}"
             #AIに質問する
             answer = analyzer.chat(
                 context,

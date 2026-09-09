@@ -92,8 +92,7 @@ export default function ArticleList() {
             </Box>
 
             {/* 右: AIパネル。記事の「AIに聞く」で開く。その1記事に絞って深掘りする。
-                閉じても display:none にするだけでアンマウントしない = 会話を保持。
-                別の記事を選ぶと key が変わって Chat が作り直され、会話がリセットされる */}
+                別の記事を選ぶ or 閉じると focusedId が変わり、Chat が作り直されて会話がリセットされる */}
             <Box
                 sx={{
                     display: focusedId !== null ? "flex" : "none",
@@ -139,10 +138,9 @@ export default function ArticleList() {
                 </Box>
 
                 <Box sx={{ flex: 1, minHeight: 0 }}>
-                    <Chat
-                        key={focusedId}
-                        articles_ids={focusedId !== null ? [focusedId] : []}
-                    />
+                    {focusedId !== null && (
+                        <Chat key={focusedId} articleId={focusedId} />
+                    )}
                 </Box>
             </Box>
         </Box>

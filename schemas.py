@@ -43,7 +43,7 @@ class ChatMessage(BaseModel):
 
 class ChatRequest(BaseModel):
     question: str
-    articles_ids: list[int]
+    article_id: int
     history: list[ChatMessage] | None = None
 
 

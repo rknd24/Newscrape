@@ -11,10 +11,10 @@ import Typography from '@mui/material/Typography'
 import SendIcon from '@mui/icons-material/Send'
 
 type ChatProps = {
-    articles_ids: number[]
+    articleId: number
 }
 
-export default function Chat({ articles_ids }: ChatProps) {
+export default function Chat({ articleId }: ChatProps) {
     const [question, setQuestion] = useState("")
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
@@ -32,7 +32,7 @@ export default function Chat({ articles_ids }: ChatProps) {
         setLoading(true)
         setError(null)
 
-        chat(text, articles_ids, preHistory)
+        chat(text, articleId, preHistory)
             .then(data => {
                 setHistory(prev => [...prev, { role: 'assistant', content: data.answer }])
             })

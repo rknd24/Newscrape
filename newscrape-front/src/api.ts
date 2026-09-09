@@ -53,13 +53,13 @@ export function analyze(article: Article): Promise<AnalyzeResponse> {
         })
 }
 
-export function chat(question: string, articles_ids: number[], history: ChatMessage[]): Promise<{ answer: string }> {
+export function chat(question: string, articleId: number, history: ChatMessage[]): Promise<{ answer: string }> {
     return fetch(API_BASE + `/chat`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ question, articles_ids, history })
+        body: JSON.stringify({ question, article_id: articleId, history })
     }).then(res => res.json().then(data => ({ ok: res.ok, data })))
         .then(({ ok, data }) => {
             if (ok) {
