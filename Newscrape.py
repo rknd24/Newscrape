@@ -18,7 +18,7 @@ GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
 
 # --- AI Analyzer Module ---
 class AIAnalyzer:
-    """Llama APIを利用したテキスト解析クラス"""
+    """LLM(Groq経由)を利用したテキスト解析クラス"""
 
     def __init__(self, api_key: str):
         self.model = "openai/gpt-oss-120b"
@@ -27,11 +27,11 @@ class AIAnalyzer:
     def analyze(self, raw_text: str) -> str:
         """記事本文を解析し、要約を返す"""
         try:
-            return self._call_llama(raw_text)
+            return self._call_llm(raw_text)
         except Exception as e:
             return f"[Error] Analysis failed: {e}"
 
-    def _call_llama(self, raw_text: str) -> str:
+    def _call_llm(self, raw_text: str) -> str:
         prompt = f"""
         以下のニュース記事を、一般の読者向けに短く要約してください。
         体言止めを使い、冗長な表現は避けること。
