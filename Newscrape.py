@@ -8,7 +8,7 @@ from rich.console import Console
 from rich.markdown import Markdown
 from rich.panel import Panel
 from rich import box
-import datetime
+from datetime import datetime
 from groq import Groq
 console = Console()
 
@@ -66,13 +66,13 @@ class AIAnalyzer:
         return choice.message.content
 
     def chat(self,context:str,question:str,history:list[dict[str,str]]|None)->str:
-        SYSTEM_PROMPT = (
-        "記事に書かれたニュースの事実は記事を根拠にする。"
-        "記事にない一般的な知識で補足・説明してよいが、記事の事実と混同しない。"
-        "記事から答えようのない完全に無関係な質問のときだけ、その旨を簡潔に伝える。"
-        "回答は3〜4文、長くても200字程度。結論から答える。"
-        "見出し・表・番号付きリストは使わず、地の文で書く。前置きや締めの一文は書かない。"
-        )
+        SYSTEM_PROMPT = f"""
+        記事に書かれたニュースの事実は記事を根拠にする。
+        記事の話題に関連する背景知識(人物・組織・用語など)は一般知識として積極的に答えてよい。
+        記事のテーマと全く関係ない質問の時だけ答えられない旨を伝える
+        見出し・表・番号付きリストは使わず、地の文で書く。前置きや締めの一文は書かない。
+        {datetime.now()}
+        """
 
         messages = [{"role": "system", "content": f"{SYSTEM_PROMPT}\n\n{context}"}]
 
@@ -86,7 +86,10 @@ class AIAnalyzer:
             reasoning_effort="low",
             max_completion_tokens=800,
         )
-        return response.choices[0].message.content
+        choice = response.choices[0]
+        if choice.finish_reason == "length":
+            raise RuntimeError("回答が出力トークン上限で打ち切られた")
+        return choice.message.content
 
 
 
@@ -113,6 +116,13 @@ class NewsFetcher:
             return None
         soup = BeautifulSoup(res.text, "html.parser")
         article_tag = soup.find("article")
+        section_tags = soup.find_all("section")
+        noise_heading_list= ["みんなの意見","ニュースの流れ"]
+        for section_tag in section_tags:
+            heading_tag = section_tag.find(["h2","h3","h4"])
+            heading_text = heading_tag.get_text(separator="\n",strip=True)
+            if heading_text in noise_heading_list:
+                section_tag.decompose()
         return article_tag.get_text(separator="\n",strip=True) if article_tag else soup.get_text()
 
 
