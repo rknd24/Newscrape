@@ -81,15 +81,20 @@ class AIAnalyzer:
         messages.append({"role": "user", "content": question})
 
         response = self.client.chat.completions.create(
+            stream=True,
             model=self.model,
             messages=messages,
             reasoning_effort="low",
             max_completion_tokens=800,
         )
-        choice = response.choices[0]
-        if choice.finish_reason == "length":
-            raise RuntimeError("回答が出力トークン上限で打ち切られた")
-        return choice.message.content
+        for chunk in response:
+            if chunk.choices[0].delta.content is not None:
+                reply = chunk.choices[0].delta.content
+                yield reply
+            if chunk.choices[0].finish_reason == "length":
+                raise RuntimeError("回答が出力トークン上限で打ち切られた")
+        return 
+        
 
 
 
