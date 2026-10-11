@@ -65,7 +65,7 @@ class AIAnalyzer:
             raise RuntimeError("要約が出力トークン上限で打ち切られた")
         return choice.message.content
 
-    def chat(self,context:str,question:str,history:list[dict[str,str]]|None)->str:
+    def chat(self,context:str,question:str,history:list[dict[str,str]]|None):
         SYSTEM_PROMPT = f"""
         記事に書かれたニュースの事実は記事を根拠にする。
         記事の話題に関連する背景知識(人物・組織・用語など)は一般知識として積極的に答えてよい。

@@ -28,14 +28,23 @@ export default function Chat({ articleId }: ChatProps) {
 
         const preHistory = history
         setHistory(prev => [...prev, { role: 'user', content: text }])
+        setHistory(prev => [...prev, { role: 'assistant', content: ''}])
         setQuestion("")
         setLoading(true)
         setError(null)
 
-        chat(text, articleId, preHistory)
-            .then(data => {
-                setHistory(prev => [...prev, { role: 'assistant', content: data.answer }])
+        const handleStreaming = (text: string) => {
+            setHistory(prev => {
+                const next = [...prev]
+                next[next.length-1] = {
+                    ...next[next.length-1],
+                    content: next[next.length - 1].content + text
+                }
+                return next
             })
+        }
+
+        chat(text, articleId, preHistory, handleStreaming)
             .catch(() => {
                 setError("質問の送信に失敗しました。")
             })
@@ -43,6 +52,8 @@ export default function Chat({ articleId }: ChatProps) {
                 setLoading(false)
             })
     }
+
+    
 
     return (
         <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>

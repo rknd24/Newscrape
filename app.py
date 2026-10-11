@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 from datetime import datetime
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 from apscheduler.schedulers.background import BackgroundScheduler
 from Newscrape import NewsFetcher, AIAnalyzer
 from database import engine, Base
@@ -10,7 +11,7 @@ from sqlalchemy import select
 from database import SessionLocal
 from models import Article
 from ingest import ingest, reset_broken_summaries, generate_summaries, prune_old
-from schemas import NewsResponse, AnalyzeRequest, ChatRequest, ChatResponse
+from schemas import NewsResponse, AnalyzeRequest, ChatRequest
 
 # データベースの初期化
 Base.metadata.create_all(bind=engine)
@@ -134,7 +135,7 @@ def analyze_article(article: AnalyzeRequest):
 
 
 #エンドポイント3　:Chat機能を実装する
-@app.post("/chat",response_model=ChatResponse)
+@app.post("/chat")
 def chat(chat_request: ChatRequest):
     question = chat_request.question
     article_id = chat_request.article_id
@@ -149,12 +150,7 @@ def chat(chat_request: ChatRequest):
                 raise HTTPException(status_code=404, detail="Article not found in the database.")
             context = f"記事タイトル: {article.title}\n記事本文: {article.body_text or article.summary or ''}"
             #AIに質問する
-            answer = analyzer.chat(
-                context,
-                question,
-                [{"role": h.role, "content": h.content} for h in history]
-            )
-            return {"answer":answer}
+            return StreamingResponse(analyzer.chat(context,question,[{"role": h.role, "content": h.content} for h in history]),media_type="text/plain")
         except HTTPException:
             raise 
         except Exception as e:
