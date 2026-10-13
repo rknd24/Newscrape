@@ -27,16 +27,15 @@ Yahoo! ニュースの各カテゴリRSSを定期的に取り込み、記事本�
   │ HTTPS
 Cloudflare Workers（静的アセット）        フロントのビルド済みファイル
   │ HTTP  (VITE_API_BASE で注入したURL)
-Render 無料 Web Service                  app.py (FastAPI / uvicorn) が24時間稼働
+Vercel Functions（Singapore, sin1）       app.py (FastAPI) をサーバーレスで実行
   │ SQL  (DATABASE_URL)
 Neon（サーバーレス Postgres, Singapore）  記事と要約の保存先
 
-GitHub Actions cron（30分おき）           python ingest.py を別マシンで実行し Neon に書き込む
-UptimeRobot（5分おき /health）            Render のスリープ防止
+GitHub Actions cron（数時間おき、GitHub側の制約で間隔は不定）  python ingest.py を別マシンで実行し Neon に書き込む
 LLM: Groq / openai/gpt-oss-120b         要約生成と記事チャット
 ```
 
-すべて無料枠。フロントとバックは別デプロイで、`git push` すると Render と Cloudflare が自動で再デプロイする。
+すべて無料枠。フロントとバックは別デプロイで、`git push` すると Vercel と Cloudflare が自動で再デプロイする。関数のリージョンは `vercel.json` で DB と同じ Singapore に固定している。
 
 ## 設計上の判断
 
@@ -54,7 +53,7 @@ LLM: Groq / openai/gpt-oss-120b         要約生成と記事チャット
 
 ### LLMクライアントを1クラスに隔離
 
-`Newscrape.py` の `AIAnalyzer` がLLM呼び出しの唯一の場所。Gemini（無料枠20リクエスト/日、有料は前払い）から Groq / Qwen へ乗り換えたとき、変更はこのクラスと環境変数名だけで済んだ。app.py と ingest.py のロジックは無変更。
+`Newscrape.py` の `AIAnalyzer` がLLM呼び出しの唯一の場所。Gemini（無料枠20リクエスト/日、有料は前払い）から Groq（現在は openai/gpt-oss-120b）へ乗り換えたとき、変更はこのクラスと環境変数名だけで済んだ。app.py と ingest.py のロジックは無変更。
 
 ### 取り込みをWebプロセスから分離
 
@@ -90,7 +89,7 @@ Yahoo! トピックスの記事は数日で鮮度が落ちる。ためこむと�
 | DB | PostgreSQL（Neon）/ 開発は SQLite |
 | 取り込み | requests + BeautifulSoup（スクレイピング）、標準ライブラリ（RSSパース） |
 | LLM | Groq API（openai/gpt-oss-120b） |
-| インフラ | Cloudflare Workers / Render / GitHub Actions / UptimeRobot |
+| インフラ | Cloudflare Workers / Vercel / GitHub Actions |
 
 ## ローカルで動かす
 
