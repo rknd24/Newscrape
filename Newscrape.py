@@ -140,7 +140,7 @@ class HistoryManager:
     def save_article(self, title: str, summary: str):
         """記事のタイトルと要約、取得時刻をファイルに追記する"""
         # 1. 現在の時刻を取得して指定のフォーマットにする
-        now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+        now = datetime.now().strftime("%Y-%m-%d %H:%M")
 
         # 2. 書き込むテキスト（ログのフォーマット）を組み立てる
         log_text = f"[{now}]\nタイトル: {title}\n要約:\n{summary}\n" + "-" * 100 + "\n"
