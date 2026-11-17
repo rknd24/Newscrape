@@ -17,7 +17,7 @@ export interface ChatMessage {
     content: string
 }
 
-// 本番はビルド時に VITE_API_BASE（Renderの https://xxx.onrender.com）を注入する。
+// 本番はビルド時に VITE_API_BASE（Vercel にデプロイしたAPIのURL）を注入する。
 // ローカルは空文字 → Vite の proxy が /news, /analyze を localhost:8000 に転送する。
 const API_BASE = import.meta.env.VITE_API_BASE ?? ""
 
