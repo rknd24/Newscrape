@@ -65,9 +65,8 @@ def reset_broken_summaries():
     要約が保存されてしまうことがある。cron のたびに拾い直す。
     """
     with SessionLocal() as session:
-        rows = session.scalars(
-            select(Article).where(Article.summary.is_not(None))
-        ).all()
+        stmt = select(Article).where(Article.summary.is_not(None))
+        rows = session.scalars(stmt).all()
         reset = 0
         for a in rows:
             s = a.summary or ""
